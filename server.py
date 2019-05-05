@@ -12,7 +12,7 @@ class GameServer(object):
 		self.message_queues = {}
 		return
 
-	def create_server_socket(self):
+	def createServerSocket(self):
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		try:
@@ -27,12 +27,12 @@ class GameServer(object):
 		self.sock.setblocking(0)
 		return
 
-	def shut_down(self):
+	def shutDown(self):
 		self.sock.close()
 		return
 
 	def start(self, port = 0):
-		self.create_server_socket()
+		self.createServerSocket()
 
 		self.inputs = [self.sock]
 		while True:
@@ -84,4 +84,4 @@ if "__main__" == __name__:
 	try:
 		game_server.start(port)
 	except KeyboardInterrupt:
-		game_server.shut_down()
+		game_server.shutDown()
