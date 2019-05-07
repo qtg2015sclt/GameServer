@@ -10,6 +10,12 @@ class GameServer(object):
 		self.inputs = []
 		self.outputs = []
 		self.message_queues = {}
+		self.dispatcher = Dispatcher()
+		service_dict = {
+		LoginService.SERVICE_ID: LoginService,
+		GameSyncService.SERVICE_ID: GameSyncService,
+		}
+		self.dispatcher.registers(service_dict)
 		return
 
 	def createServerSocket(self):
@@ -48,7 +54,9 @@ class GameServer(object):
 					data = s.recv(1024)#.decode()
 					if data:
 						print >> sys.stderr, 'received "%s" from %s' % (data, s.getpeername())
-						self.message_queues[s].put(data + '\n')
+						#self.message_queues[s].put(data + '\n')
+						# TODO: need handle dispatch return?
+						self.dispatcher.dispatch(msg)
 						if s not in self.outputs:
 							self.outputs.append(s)
 					else:
@@ -58,6 +66,7 @@ class GameServer(object):
 						self.inputs.remove(s)
 						s.close()
 						del self.message_queues[s]
+			# TODO: cannot make a good broadcast
 			for s in writable:
 				try:
 					next_msg = self.message_queues[s].get_nowait()

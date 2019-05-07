@@ -36,15 +36,29 @@ class Service(object):
 			self.commands[cmdid] = command_dict[cmdid]
 
 class LoginService(Service):
-	Service_ID = 1000
+	SERVICE_ID = 1000
 	HandleLoginCmdID = 1001
 
 	def __init__(self):
-		super(LoginService, self).__init__(self.Service_ID)
+		super(LoginService, self).__init__(self.SERVICE_ID)
 		command_dict = {
 		self.HandleLoginCmdID: self.handleLogin,
 		}
 		self.registers(command_dict)
 
 	def handleLogin(self, msg, who):
+		raise NotImplementedError
+
+class GameSyncService(Service):
+	SERVICE_ID = 2000
+	ClientSyncCmdID = 1001
+
+	def __init__(self):
+		super(GameSyncService, self.__init__(self.SERVICE_ID))
+		command_dict = {
+		self.ClientSyncCmdID: self.playerSync,
+		}
+		self.registers(command_dict)
+
+	def playerSync(self, msg, who):
 		raise NotImplementedError
