@@ -22,9 +22,29 @@ class Service(object):
 		self.commands = {}
 
 	def handle(self, msg, owner):
-		raise NotImplementedError
+		cmdid = msg.cmdid
+		if not cmdid in self.commands:
+			raise Exception('bad command %s' % cmdid)
+
+		f = self.commands[cmdid]
+		return f(msg, owner)
+		#raise NotImplementedError
 
 	def registers(self, command_dict):
 		self.commands = {}
 		for cmdid in command_dict:
 			self.commands[cmdid] = command_dict[cmdid]
+
+class LoginService(Service):
+	Service_ID = 1000
+	HandleLoginCmdID = 1001
+
+	def __init__(self):
+		super(LoginService, self).__init__(self.Service_ID)
+		command_dict = {
+		self.HandleLoginCmdID: self.handleLogin,
+		}
+		self.registers(command_dict)
+
+	def handleLogin(self, msg, who):
+		raise NotImplementedError
