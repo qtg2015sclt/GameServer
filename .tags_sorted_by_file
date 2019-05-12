@@ -1,0 +1,41 @@
+MAX_HOST_CLIENTS_INDEX	conf.py	/^MAX_HOST_CLIENTS_INDEX	= 0xffff/;"	v
+ClientSyncCmdID	dispatcher.py	/^    ClientSyncCmdID = 1001$/;"	v	class:GameSyncService
+Dispatcher	dispatcher.py	/^class Dispatcher(object):$/;"	c
+GameSyncService	dispatcher.py	/^class GameSyncService(Service):$/;"	c
+HandleLoginCmdID	dispatcher.py	/^    HandleLoginCmdID = 1001$/;"	v	class:LoginService
+LoginService	dispatcher.py	/^class LoginService(Service):$/;"	c
+SERVICE_ID	dispatcher.py	/^    SERVICE_ID = 1000$/;"	v	class:LoginService
+SERVICE_ID	dispatcher.py	/^    SERVICE_ID = 2000$/;"	v	class:GameSyncService
+Service	dispatcher.py	/^class Service(object):$/;"	c
+__init__	dispatcher.py	/^    def __init__(self):$/;"	m	class:Dispatcher
+__init__	dispatcher.py	/^    def __init__(self):$/;"	m	class:GameSyncService
+__init__	dispatcher.py	/^    def __init__(self):$/;"	m	class:LoginService
+__init__	dispatcher.py	/^    def __init__(self, svcid):$/;"	m	class:Service
+dispatch	dispatcher.py	/^    def dispatch(self, msg, owner):$/;"	m	class:Dispatcher
+handle	dispatcher.py	/^    def handle(self, msg, owner):$/;"	m	class:Service
+handleLogin	dispatcher.py	/^    def handleLogin(self, msg, who):$/;"	m	class:LoginService
+playerSync	dispatcher.py	/^    def playerSync(self, msg, who):$/;"	m	class:GameSyncService
+registers	dispatcher.py	/^    def registers(self, command_dict):$/;"	m	class:Service
+registers	dispatcher.py	/^    def registers(self, service_dict):$/;"	m	class:Dispatcher
+Player	player.py	/^class Player(object):$/;"	c
+__init__	player.py	/^    def __init__(self, user_id):$/;"	m	class:Player
+GameServer	server.py	/^class GameServer(object):$/;"	c
+Queue	server.py	/^import Queue$/;"	i
+__init__	server.py	/^    def __init__(self):$/;"	m	class:GameServer
+conf	server.py	/^import conf$/;"	i
+createServerSocket	server.py	/^    def createServerSocket(self, port=0):$/;"	m	class:GameServer
+game_server	server.py	/^    game_server = GameServer()$/;"	v
+port	server.py	/^    port = 57890$/;"	v
+readSocket	server.py	/^    def readSocket(self):$/;"	m	class:GameServer
+select	server.py	/^import select$/;"	i
+sendSocket	server.py	/^    def sendSocket(self):$/;"	m	class:GameServer
+shutDown	server.py	/^    def shutDown(self):$/;"	m	class:GameServer
+socket	server.py	/^import socket$/;"	i
+start	server.py	/^    def start(self):$/;"	m	class:GameServer
+sys	server.py	/^import sys$/;"	i
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_PROGRAM_VERSION	5.8	//
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/

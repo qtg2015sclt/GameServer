@@ -48,7 +48,7 @@ class LoginService(Service):
         self.registers(command_dict)
 
     def handleLogin(self, msg, who):
-        raise NotImplementedError
+        
 
 
 class GameSyncService(Service):

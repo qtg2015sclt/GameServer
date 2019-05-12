@@ -1,12 +1,17 @@
+"""Game Server."""
 import socket
 import select
 import sys
 import Queue
 import conf
+from dispatch import Dispatcher, LoginService, GameSyncService
 
 
 class GameServer(object):
+    """GameServer."""
+
     def __init__(self):
+        """Init."""
         self.sock = None
         self.inputs = []
         self.outputs = []
@@ -20,7 +25,8 @@ class GameServer(object):
         self.dispatcher.registers(service_dict)
         return
 
-    def createServerSocket(self, port=0):
+    def create_server_socket(self, port=0):
+        """Create a server socket."""
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
@@ -31,18 +37,20 @@ class GameServer(object):
             except:
                 pass  # should logging here
             return -1
-        self.sock.listen(conf.MAX_HOST_CLIENTS_INDEX+1)
+        self.sock.listen(conf.MAX_HOST_CLIENTS_INDEX + 1)
         self.sock.setblocking(0)
         self.inputs = [self.sock]
         return
 
-    def shutDown(self):
+    def shut_down(self):
+        """Shut down the server."""
         # TODO: need close client connection?
         self.sock.close()
         return
 
-    def readSocket(self):
-        readable, _, exceptional = select.select(self.inputs, _, self.inputs)
+    def read_socket(self):
+        """Read the socket."""
+        readable, _, exceptional = select.select(self.inputs, [], self.inputs)
         for s in readable:
             if s is self.sock:
                 connection, client_address = s.accept()
@@ -69,9 +77,10 @@ class GameServer(object):
                         s.close()
                         del self.message_send_queues[s]
 
-    def sendSocket(self):
+    def send_socket(self):
+        """Send socket."""
         # TODO: outputs need get exceptional?
-        _, writable, exceptional = select.select(_, self.outputs, self.outputs)
+        _, writable, exceptional = select.select([], self.outputs, self.outputs)
         # TODO: cannot make a good broadcast
         for s in writable:
             try:
@@ -91,6 +100,7 @@ class GameServer(object):
                 del self.message_send_queues[s]
 
     def start(self):
+        """Start the server."""
         while True:
             self.readSocket()
             self.sendSocket()
