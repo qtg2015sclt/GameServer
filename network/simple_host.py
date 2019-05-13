@@ -4,6 +4,7 @@ import socket
 import select
 import conf
 from buffered_socket import BufferedSocket
+from dispatch import Dispatcher, LoginService, GameSyncService
 
 
 class SimpleHost(object):
@@ -16,6 +17,12 @@ class SimpleHost(object):
         self.sock = None
         self.port = 0
         self.socket_client_map = {}
+        self.dispatcher = Dispatcher()
+        service_dict = {
+            LoginService.SERVICE_ID: LoginService,
+            GameSyncService.SERVICE_ID: GameSyncService,
+        }
+        self.dispatcher.registers(service_dict)
 
     def start_up(self, port=0):
         """Start the server socket."""
@@ -42,59 +49,67 @@ class SimpleHost(object):
         self.sock.close()
         return
 
-    def read_socket(self):
-        """Read the socket."""
-        readable, _, exceptional = select.select(self.inputs, [], self.inputs)
-        for s in readable:
-            if s is self.sock:
-                connection, client_address = s.accept()
-                print >> sys.stderr, 'new connection from', client_address
-                connection.setblocking(0)
-                # when connection come, create a client(buffered socket):
-                client = BufferedSocket(connection)
-                self.socket_client_map[connection] = client
-            else:
-                data = s.recv(1024)  # .decode()
-                if data:
-                    print 'received "%s" from %s' % (data, s.getpeername())
-                    # self.message_send_queues[s].put(data + '\n')
-                    if s not in self.outputs:
-                        self.outputs.append(s)
-                        # TODO: need handle dispatch return?
-                        self.dispatcher.dispatch(data)
-                    else:
-                        print 'read no data, closing ', client_address
-                        if s in self.outputs:
-                            self.outputs.remove(s)
-                        self.inputs.remove(s)
-                        s.close()
-                        del self.message_send_queues[s]
-            for s in exceptional:
-                print 'handling exceptional condition for', s.getpeername()
-                self.inputs.remove(s)
-                if s in self.outputs:
-                    self.outputs.remove(s)
-                s.close()
-                del self.message_send_queues[s]
+    def process(self):
+        """Handle new connection, read socket, write socket."""
+        read = [s.sock for s in self.socket_client_map.itervalues()]
+        read += [self.sock]
+        self.handle_new_connection(read)
+        read = write = [s.sock for s in self.socket_client_map.itervalues()]
+        self.read_socket(read)
+        self.write_socket(write)
 
-    def send_socket(self):
+    def handle_new_connection(self, read):
+        """Handle new connection."""
+        readable, _, _ = select.select(read, [], [])
+        if self.sock in readable:
+            connection, client_address = self.sock.accept()
+            print >> sys.stderr, 'new connection from', client_address
+            connection.setblocking(0)
+            # when connection come, create a client(buffered socket):
+            client = BufferedSocket(connection)
+            self.socket_client_map.update({connection: client})
+
+    def read_socket(self, read):
+        """Read the socket."""
+        readable, _, exceptional = select.select(read, [], read)
+        for s in readable:
+            client = self.socket_client_map[s]
+            data = client.receive()
+            if data:
+                print 'received "%s" from %s' % (data, s.getpeername())
+                # self.message_send_queues[s].put(data + '\n')
+                # TODO: need handle dispatch return?
+                self.dispatcher.dispatch(data)
+            else:
+                print 'read no data, closing ', s.getpeername()
+                if s in self.socket_client_map.iterkeys():
+                    self.socket_client_map.remove(s)
+                    s.close()
+                    # del self.message_send_queues[s]
+        self.handle_exceptional(exceptional)
+
+    def write_socket(self, write):
         """Send socket."""
         # TODO: outputs need get exceptional?
-        _, writable, exceptional = select.select([], self.outputs, self.outputs)
+        _, writable, exceptional = select.select([], write, write)
         # TODO: cannot make a good broadcast
         for s in writable:
-            try:
-                next_msg = self.message_send_queues[s].get_nowait()
-            except Queue.Empty:
-                print 'output queue for', s.getpeername(), 'is empty'
-                self.outputs.remove(s)
-            else:
-                print 'sending "%s" to %s' % (next_msg, s.getpeername())
-                s.send(next_msg)
-            for s in exceptional:
-                print 'handling exceptional condition for', s.getpeername()
-                self.inputs.remove(s)
-                if s in self.outputs:
-                    self.outputs.remove(s)
-                s.close()
-                del self.message_send_queues[s]
+            client = self.socket_client_map[s]
+            client.send()
+            # try:
+            #     next_msg = self.message_send_queues[s].get_nowait()
+            # except Queue.Empty:
+            #     print 'output queue for', s.getpeername(), 'is empty'
+            #     self.outputs.remove(s)
+            # else:
+            #     print 'sending "%s" to %s' % (next_msg, s.getpeername())
+            #     s.send(next_msg)
+        self.handle_exceptional(exceptional)
+
+    def handle_exceptional(self, exceptional):
+        """Handle exceptional."""
+        for s in exceptional:
+            print 'handling exceptional condition for', s.getpeername()
+            self.socket_client_map.remove(s)
+            s.close()
+            # del self.message_send_queues[s]

@@ -9,7 +9,8 @@ class BufferedSocket(object):
         super(BufferedSocket, self).__init__
         self.sock = sock
         self.sock.setblocking(0)
-        self.buffer = b''
+        self.send_buffer = b''
+        self.recv_buffer = b''
         self.closed = False
 
     def receive(self):
@@ -17,7 +18,7 @@ class BufferedSocket(object):
         chunk = self.sock.recv(4096)
         if b'' == chunk:
             self.closed = True
-        self.buffer += chunk
+        self.recv_buffer += chunk
 
     def send(self, msg):
         """Send msg to socket."""
