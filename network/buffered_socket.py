@@ -1,4 +1,4 @@
-"""Network."""
+"""Network: BufferedSocket."""
 
 
 class BufferedSocket(object):
@@ -7,9 +7,9 @@ class BufferedSocket(object):
     def __init__(self, sock):
         """A buffered socket contains socket and buffer."""
         super(BufferedSocket, self).__init__
-        self.sock = None
+        self.sock = sock
         self.sock.setblocking(0)
-        self.buffer
+        self.buffer = b''
         self.closed = False
 
     def receive(self):
