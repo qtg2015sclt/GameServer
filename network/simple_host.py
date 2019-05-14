@@ -11,12 +11,13 @@ class SimpleHost(object):
     """A simple host."""
 
     def __init__(self):
-        """A simple host contains the socket, port and socket2client map."""
+        """Contain the socket, port and all connected sockets."""
         super(SimpleHost, self).__init__()
 
         self.sock = None
         self.port = 0
-        self.socket_client_map = {}
+        self.SOCKETS = {}
+        self.queue = []
         self.dispatcher = Dispatcher()
         service_dict = {
             LoginService.SERVICE_ID: LoginService,
@@ -50,13 +51,18 @@ class SimpleHost(object):
         return
 
     def process(self):
-        """Handle new connection, read socket, write socket."""
-        read = [s.sock for s in self.socket_client_map.itervalues()]
+        """Handle all situation.
+
+        Handle new connection, read socket,
+        Write socket, and remove closed socket.
+        """
+        read = [s.sock for s in self.SOCKETS.itervalues()]
         read += [self.sock]
         self.handle_new_connection(read)
-        read = write = [s.sock for s in self.socket_client_map.itervalues()]
+        read = write = [s.sock for s in self.SOCKETS.itervalues()]
         self.read_socket(read)
         self.write_socket(write)
+        self.close()
 
     def handle_new_connection(self, read):
         """Handle new connection."""
@@ -66,35 +72,30 @@ class SimpleHost(object):
             print >> sys.stderr, 'new connection from', client_address
             connection.setblocking(0)
             # when connection come, create a client(buffered socket):
-            client = BufferedSocket(connection)
-            self.socket_client_map.update({connection: client})
+            client = BufferedSocket(connection, client_address)
+            self.SOCKETS.update({client.fileno: client})
 
     def read_socket(self, read):
         """Read the socket."""
         readable, _, exceptional = select.select(read, [], read)
         for s in readable:
-            client = self.socket_client_map[s]
+            client = self.SOCKETS[s.fileno()]
             data = client.receive()
             if data:
                 print 'received "%s" from %s' % (data, s.getpeername())
-                # self.message_send_queues[s].put(data + '\n')
                 # TODO: need handle dispatch return?
                 self.dispatcher.dispatch(data)
-            else:
-                print 'read no data, closing ', s.getpeername()
-                if s in self.socket_client_map.iterkeys():
-                    self.socket_client_map.remove(s)
-                    s.close()
-                    # del self.message_send_queues[s]
         self.handle_exceptional(exceptional)
 
     def write_socket(self, write):
         """Send socket."""
         # TODO: outputs need get exceptional?
+        # for msg in enumerate(self.queue):
+
         _, writable, exceptional = select.select([], write, write)
         # TODO: cannot make a good broadcast
         for s in writable:
-            client = self.socket_client_map[s]
+            client = self.SOCKETS[s.fileno()]
             client.send()
             # try:
             #     next_msg = self.message_send_queues[s].get_nowait()
@@ -106,10 +107,16 @@ class SimpleHost(object):
             #     s.send(next_msg)
         self.handle_exceptional(exceptional)
 
+    def close(self):
+        """Remove all closed socket from map."""
+        closed = [sock for sock in self.SOCKETS.itervalues() if sock.closed]
+        for sock in closed:
+            self.SOCKETS.pop(sock.fileno)
+
     def handle_exceptional(self, exceptional):
         """Handle exceptional."""
         for s in exceptional:
             print 'handling exceptional condition for', s.getpeername()
-            self.socket_client_map.remove(s)
+            self.SOCKETS.pop(s.fileno())
             s.close()
             # del self.message_send_queues[s]
