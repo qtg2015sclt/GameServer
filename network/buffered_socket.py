@@ -18,27 +18,29 @@ class BufferedSocket(object):
 
     def receive(self):
         """Read socket."""
-        data = ''
-        while True:
-            try:
-                chunk = self.sock.recv(4096)
-                if not chunk:
-                    print 'read no data, closing ', self.sock.getpeername()
-                    self.close()
-            except socket.error:
-                print "Receive data failed, err: " + socket.error
-                self.close()
-            if '' == chunk:
-                break
-            data += chunk
+        # data = ''
+        data = self.sock.recv(4096)
+        # while True:
+        #     chunk = ''
+        #     try:
+        #         chunk = self.sock.recv(4096)
+        #         if not chunk:
+        #             print 'read no data, closing ', self.sock.getpeername()
+        #             self.close()
+        #     except socket.error, (code, strerror):
+        #         print "Receive data failed, ", code, ": ", strerror
+        #         self.close()
+        #     if '' == chunk:
+        #         break
+        #     data += chunk
         return data
 
     def send(self, msg):
         """Send msg to socket."""
         try:
             self.sock.sendall(msg)
-        except socket.error:
-            print "Send msg failed, err: " + socket.error
+        except socket.error, (code, strerror):
+            print "Send msg failed, ", code, ": ", strerror
             self.close()
 
     def close(self):

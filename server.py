@@ -1,4 +1,6 @@
 """Game Server."""
+import sys
+sys.path.append('./network/')
 from simple_host import SimpleHost
 
 

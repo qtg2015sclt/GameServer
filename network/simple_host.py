@@ -1,10 +1,12 @@
 """Network: SimpleHost."""
 import sys
+import json
 import socket
 import select
 import conf
 from buffered_socket import BufferedSocket
-from dispatch import Dispatcher, LoginService, GameSyncService
+from dispatcher import Dispatcher, LoginService, GameSyncService
+from network_msg import NetworkMsg
 
 
 class SimpleHost(object):
@@ -20,8 +22,8 @@ class SimpleHost(object):
         self.queue = []
         self.dispatcher = Dispatcher()
         service_dict = {
-            LoginService.SERVICE_ID: LoginService,
-            GameSyncService.SERVICE_ID: GameSyncService,
+            LoginService.SERVICE_ID: LoginService(),
+            GameSyncService.SERVICE_ID: GameSyncService(),
         }
         self.dispatcher.registers(service_dict)
 
@@ -47,7 +49,8 @@ class SimpleHost(object):
     def shut_down(self):
         """Shut down the server socket."""
         # TODO: need close client connection?
-        self.sock.close()
+        if self.sock:
+            self.sock.close()
         return
 
     def process(self):
@@ -77,14 +80,23 @@ class SimpleHost(object):
 
     def read_socket(self, read):
         """Read the socket."""
+        # for sock in self.SOCKETS.itervalues():
+        #     print 'sock fileno = ', sock.fileno
         readable, _, exceptional = select.select(read, [], read)
+        # print "readable count = ", readable.count()
         for s in readable:
+            print s.fileno(), ' is readable'
             client = self.SOCKETS[s.fileno()]
             data = client.receive()
             if data:
                 print 'received "%s" from %s' % (data, s.getpeername())
+                network_msg = NetworkMsg()
+                network_msg = json.loads(
+                    data,
+                    object_hook=network_msg.dict2networkmsg
+                )
                 # TODO: need handle dispatch return?
-                self.dispatcher.dispatch(data)
+                self.dispatcher.dispatch(network_msg, client.fileno)
         self.handle_exceptional(exceptional)
 
     def write_socket(self, write):
