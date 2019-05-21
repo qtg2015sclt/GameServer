@@ -1,4 +1,5 @@
 """Dispatch network msg to services."""
+import json
 
 
 class Dispatcher(object):
@@ -9,9 +10,10 @@ class Dispatcher(object):
         super(Dispatcher, self).__init__()
         self.services = {}
 
-    def dispatch(self, msg, owner):
+    def dispatch(self, data, owner):
         """Dispatch msg to Service class."""
-        sid = msg.sid
+        msg = json.loads(data)
+        sid = msg["SID"]
         if sid not in self.services:
             raise Exception('bad service %d' % sid)
         svc = self.services[sid]
@@ -36,7 +38,7 @@ class Service(object):
 
     def handle(self, msg, owner):
         """Dispatch msg to a certain services."""
-        cid = msg.cid
+        cid = msg["CID"]
         if cid not in self.commands:
             raise Exception('bad command %s' % cid)
 
@@ -66,7 +68,9 @@ class LoginService(Service):
 
     def handle_login(self, msg, who):
         """Handle login."""
-        print 'Receive login msg.'
+        username = msg["UserName"]
+        password = msg["Password"]
+        print 'Login data: username = ', username, ", password = ", password
 
 
 class GameSyncService(Service):

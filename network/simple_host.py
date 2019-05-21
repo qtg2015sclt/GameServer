@@ -6,7 +6,6 @@ import select
 import conf
 from buffered_socket import BufferedSocket
 from dispatcher import Dispatcher, LoginService, GameSyncService
-from network_msg import NetworkMsg
 
 
 class SimpleHost(object):
@@ -90,13 +89,8 @@ class SimpleHost(object):
             data = client.receive()
             if data:
                 print 'received "%s" from %s' % (data, s.getpeername())
-                network_msg = NetworkMsg()
-                network_msg = json.loads(
-                    data,
-                    object_hook=network_msg.dict2networkmsg
-                )
                 # TODO: need handle dispatch return?
-                self.dispatcher.dispatch(network_msg, client.fileno)
+                self.dispatcher.dispatch(data, client.fileno)
         self.handle_exceptional(exceptional)
 
     def write_socket(self, write):
