@@ -1,5 +1,6 @@
 """Dispatch network msg to services."""
 import json
+import pymongo
 
 
 class Dispatcher(object):
@@ -70,7 +71,19 @@ class LoginService(Service):
         """Handle login."""
         username = msg["UserName"]
         password = msg["Password"]
-        print 'Login data: username = ', username, ", password = ", password
+        # print 'Login data: username = ', username, ", password = ", password
+        # db host and port for test
+        client = pymongo.MongoClient("mongodb://localhost:27017/")
+        db = client["tpsdemo"]
+        col = db["LocalAuth"]
+        myquery = {"username": username, "password": password}
+        try:
+            res = col.find(myquery).limit(1)[0]
+        except:
+            print "No such user"
+            raise Exception("No such user")
+        userid = res["userid"]
+        print "userid = ", userid
 
 
 class GameSyncService(Service):
