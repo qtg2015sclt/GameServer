@@ -12,10 +12,12 @@ class BufferedSocket(object):
         self.fileno = sock.fileno()
         self.addr = addr
         self.sock.setblocking(0)
-        # self.send_buffer = ''
+        self.send_buffer = ''
         # self.recv_buffer = ''
         self.closed = False
 
+    # TODO: may need two type receive:
+    # socket->buffer and buffer->host msg queue
     def receive(self):
         """Read socket."""
         # data = ''
@@ -35,13 +37,17 @@ class BufferedSocket(object):
         #     data += chunk
         return data
 
-    def send(self, msg):
-        """Send msg to socket."""
+    def send(self):
+        """Send msg in send_buffer to socket."""
         try:
-            self.sock.sendall(msg)
+            self.sock.sendall(self.send_buffer)
         except socket.error, (code, strerror):
             print "Send msg failed, ", code, ": ", strerror
             self.close()
+
+    def store_to_send_buffer(self, msg):
+        """Store to send_buffer."""
+        self.send_buffer += (msg + '\n')
 
     def close(self):
         """Close the socket."""

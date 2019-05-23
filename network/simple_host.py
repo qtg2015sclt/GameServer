@@ -19,6 +19,7 @@ class SimpleHost(object):
         self.port = 0
         self.SOCKETS = {}
         self.queue = []
+        self.timeout = 30
         self.dispatcher = Dispatcher()
         service_dict = {
             LoginService.SERVICE_ID: LoginService(),
@@ -81,7 +82,7 @@ class SimpleHost(object):
         """Read the socket."""
         # for sock in self.SOCKETS.itervalues():
         #     print 'sock fileno = ', sock.fileno
-        readable, _, exceptional = select.select(read, [], read)
+        readable, _, exceptional = select.select(read, [], read, self.timeout)
         # print "readable count = ", readable.count()
         for s in readable:
             print s.fileno(), ' is readable'
@@ -90,7 +91,7 @@ class SimpleHost(object):
             if data:
                 print 'received "%s" from %s' % (data, s.getpeername())
                 # TODO: need handle dispatch return?
-                self.dispatcher.dispatch(data, client.fileno)
+                self.dispatcher.dispatch(data, client)
         self.handle_exceptional(exceptional)
 
     def write_socket(self, write):
@@ -98,7 +99,12 @@ class SimpleHost(object):
         # TODO: outputs need get exceptional?
         # for msg in enumerate(self.queue):
 
-        _, writable, exceptional = select.select([], write, write)
+        _, writable, exceptional = select.select(
+            [],
+            write,
+            write,
+            self.timeout
+        )
         # TODO: cannot make a good broadcast
         for s in writable:
             client = self.SOCKETS[s.fileno()]
