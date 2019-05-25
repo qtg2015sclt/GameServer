@@ -6,7 +6,8 @@ class NetworkMsg(object):
     """Network Msg."""
 
     def __init__(self, sid, cid):
-        """Contain sid, cid, and data."""
+        """Network Msg base."""
+        super(NetworkMsg, self).__init__()
         self.dict = {}
         self.dict['SID'] = sid
         self.dict['CID'] = cid
@@ -17,10 +18,13 @@ class NetworkMsg(object):
 
 
 class LocalAuthMsg(NetworkMsg):
-    """Local Auth msg."""
+    """Local Auth Msg."""
+
     """
     Return -1 when login failed or
     register failed.
     """
-    def __init__(self, uid):
+    def __init__(self, sid, cid, uid):
+        """Contain userid."""
+        super(LocalAuthMsg, self).__init__(sid, cid)
         self.dict['UserID'] = uid

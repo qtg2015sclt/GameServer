@@ -1,14 +1,21 @@
 """Login Service."""
+import sys
 import pymongo
 from dispatcher import Service
+sys.path.append('./network/')
+from network_msg import LocalAuthMsg
 
 
 class LoginService(Service):
     """Handle login."""
 
+    SID = 1000
+    HandleLoginCmdID = 1001
+    HandleRegisterCmdID = 1002
+
     def __init__(self):
         """Register all handle functions."""
-        super(LoginService, self).__init__(self.SERVICE_ID)
+        super(LoginService, self).__init__(self.SID)
         command_dict = {
             self.HandleLoginCmdID: self.handle_login,
             self.HandleRegisterCmdID: self.handle_register,
@@ -22,13 +29,19 @@ class LoginService(Service):
         # print 'Login data: username = ', username, ", password = ", password
         # db host and port for test
         userid_query = {"username": username, "password": password}
-        res = self.query_db(userid_query)
-        if res:
-            userid = res["userid"]
-            print "userid = ", userid
-            who.store_to_send_buffer()
-        else:
-            print "No such user."
+        # res = self.query_db(userid_query)
+        # if res:
+        #     userid = res["userid"]
+        #     print "userid = ", userid
+        #     msg = LocalAuthMsg(self.SID, self.HandleLoginCmdID, userid)
+        #     who.store_to_send_buffer(msg.to_json)
+        # else:
+        #     print "No such user."
+
+        # For test:
+        userid = 1
+        msg = LocalAuthMsg(self.SID, self.HandleLoginCmdID, userid)
+        who.store_to_send_buffer(msg.to_json())
 
     def handle_register(self, msg, who):
         """Handle new account register."""

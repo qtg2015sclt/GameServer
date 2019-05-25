@@ -5,7 +5,10 @@ import socket
 import select
 import conf
 from buffered_socket import BufferedSocket
-from dispatcher import Dispatcher, LoginService, GameSyncService
+sys.path.append('./dispatcher/')
+from dispatcher import Dispatcher
+from login_service import LoginService
+from game_service import GameSyncService
 
 
 class SimpleHost(object):
@@ -22,8 +25,8 @@ class SimpleHost(object):
         self.timeout = 30
         self.dispatcher = Dispatcher()
         service_dict = {
-            LoginService.SERVICE_ID: LoginService(),
-            GameSyncService.SERVICE_ID: GameSyncService(),
+            LoginService.SID: LoginService(),
+            # GameSyncService.SID: GameSyncService(),
         }
         self.dispatcher.registers(service_dict)
 

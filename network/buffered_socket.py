@@ -40,6 +40,7 @@ class BufferedSocket(object):
     def send(self):
         """Send msg in send_buffer to socket."""
         try:
+            print self.send_buffer
             self.sock.sendall(self.send_buffer)
         except socket.error, (code, strerror):
             print "Send msg failed, ", code, ": ", strerror
@@ -48,6 +49,7 @@ class BufferedSocket(object):
     def store_to_send_buffer(self, msg):
         """Store to send_buffer."""
         self.send_buffer += (msg + '\n')
+        # print self.send_buffer
 
     def close(self):
         """Close the socket."""
