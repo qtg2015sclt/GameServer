@@ -1,9 +1,10 @@
 """Login Service."""
 import sys
-import pymongo
 from dispatcher import Service
 sys.path.append('./network/')
 from network_msg import LocalAuthMsg
+sys.path.append('./dbmgr/')
+from dbmgr import DBMgr
 
 
 class LoginService(Service):
@@ -27,9 +28,10 @@ class LoginService(Service):
         username = msg["UserName"]
         password = msg["Password"]
         # print 'Login data: username = ', username, ", password = ", password
-        # db host and port for test
+        # TODO: should not make concrete query here
         userid_query = {"username": username, "password": password}
-        # res = self.query_db(userid_query)
+        # dbmgr = DBMgr()
+        # res = dbmgr.query_db(userid_query)
         # if res:
         #     userid = res["userid"]
         #     print "userid = ", userid
@@ -39,7 +41,9 @@ class LoginService(Service):
         #     print "No such user."
 
         # For test:
-        userid = 1
+        # userid > 0 => valid username and password
+        # userid == -1 => invalid username and password
+        userid = -1
         msg = LocalAuthMsg(self.SID, self.HandleLoginCmdID, userid)
         who.store_to_send_buffer(msg.to_json())
 
@@ -47,45 +51,30 @@ class LoginService(Service):
         """Handle new account register."""
         username = msg["UserName"]
         password = msg["Password"]
+        # TODO: should not make concrete query here
         username_query = {"username": username}
-        res = self.query_db(username_query)
-        if res:  # user name exist when there is a result
-            print "UserName has been used."
-            return
-        # insert new dict:
-        # TODO: generate userid
-        userid = None
-        user_dict = {
-            "username": username,
-            "password": password,
-            "userid": userid
-        }
-        res = self.insert_new_user_dict(user_dict)
-        if res:
-            print "Register new account."
-        else:
-            print "Register failed."
-
-    def insert_new_user_dict(self, new_dict):
-        """Insert new account dict."""
-        client = pymongo.MongoClient("mongodb://localhost:27017/")
-        db = client["tpsdemo"]
-        col = db["LocalAuth"]
-        try:
-            res = col.insert_one(new_dict)
-        except:
-            print "Insert new user failed."
-            res = None
-        return res
-
-    def query_db(self, query):
-        """Query db."""
-        client = pymongo.MongoClient("mongodb://localhost:27017/")
-        db = client["tpsdemo"]
-        col = db["LocalAuth"]
-        try:
-            res = col.find(query).limit(1)[0]
-        except:
-            print "Query failed."
-            res = None
-        return res
+        # dbmgr = DBMgr()
+        # res = dbmgr.query_db(username_query)
+        # if res:  # user name exist when there is a result
+        #     print "UserName has been used."
+        #     return
+        # # insert new dict:
+        # # TODO: generate userid
+        # userid = None
+        # user_dict = {
+        #     "username": username,
+        #     "password": password,
+        #     "userid": userid
+        # }
+        # res = dbmgr.insert_db(user_dict)
+        # if res:
+        #     print "Register new account."
+        # else:
+        #     print "Register failed."
+        # For test
+        # userid > 0 => valid username and password
+        # userid == 0 => username exist
+        # userid == -1 => register failed
+        userid = 1
+        msg = LocalAuthMsg(self.SID, self.HandleRegisterCmdID, userid)
+        who.store_to_send_buffer(msg.to_json())
