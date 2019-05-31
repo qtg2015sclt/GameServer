@@ -1,16 +1,8 @@
 """Database Manager."""
+import sys
 from db_impl_interface import DBImplInterface, MongoDBImpl
-
-
-def singleton(cls, *arg, **kw):
-    """A singleton decorator."""
-    instances = {}
-
-    def _singleton():
-        if cls not in instances:
-            instances[cls] = cls(*arg, **kw)
-        return instances[cls]
-    return _singleton
+sys.path.append('../common')
+from singleton import singleton
 
 
 @singleton
@@ -19,10 +11,13 @@ class DBMgr(object):
 
     def __init__(self):
         """Init."""
-        super(DBMgr, self).__init__()
 
     def query_db(self, query):
         """Query DB."""
+        # Test:
+        # for i in xrange(5):
+        #     db = DBImplInterface(MongoDBImpl())
+        #     print db
         db = DBImplInterface(MongoDBImpl())
         res = db.query_db(query)
         return res
@@ -32,3 +27,15 @@ class DBMgr(object):
         db = DBImplInterface(MongoDBImpl())
         res = db.insert_db(new_dict)
         return res
+
+
+# Test:
+# if __name__ == '__main__':
+#     # for i in xrange(5):
+#     #     dbmgr = DBMgr()
+#     #     print dbmgr
+#     #     new_dict = {"test": "just a test"}
+#     #     dbmgr.query_db(new_dict)
+#     dbmgr = DBMgr()
+#     new_dict = {"test": "just a test"}
+#     dbmgr.query_db(new_dict)
