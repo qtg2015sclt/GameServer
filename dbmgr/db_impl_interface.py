@@ -1,8 +1,8 @@
 """Database Implementation Interface and Concrete Implementation."""
-import sys
-sys.path.append('../common/')
+# mport sys
+# sys.path.append('../common/')
 from pymongo import MongoClient
-from singleton import singleton
+from common.singleton import singleton
 
 
 @singleton
@@ -15,11 +15,11 @@ class DBImplInterface(object):
 
     def query_db(self, query):
         """Query database."""
-        self.db_impl.query_db(query)
+        return self.db_impl.query_db(query)
 
     def insert_db(self, content):
         """Insert database."""
-        self.db_impl.insert_db(content)
+        return self.db_impl.insert_db(content)
 
     def connect_db(self):
         """Connect to database."""
@@ -43,9 +43,11 @@ class MongoDBImpl(object):
         col = db["LocalAuth"]
         try:
             res = col.find(query).limit(1)[0]
+            # print res
         except Exception as e:
             print "Query failed. ", e
             res = None
+        # print 'mongodb', res
         return res
 
     def insert_db(self, new_dict):

@@ -1,7 +1,9 @@
 """Game Server."""
-import sys
-sys.path.append('./network/')
-from simple_host import SimpleHost
+# import sys
+# sys.path.append('./network/')
+# from simple_host import SimpleHost
+from network.simple_host import SimpleHost
+from threadpool.threadpool import ThreadPool
 
 
 class GameServer(object):
@@ -26,4 +28,7 @@ if "__main__" == __name__:
     try:
         game_server.start(port)
     except KeyboardInterrupt:
+        print 'KeyboardInterrupt.'
         game_server.host.shut_down()
+        pool = ThreadPool()
+        pool.close()

@@ -5,10 +5,13 @@ import socket
 import select
 import conf
 from buffered_socket import BufferedSocket
-sys.path.append('./dispatcher/')
-from dispatcher import Dispatcher
-from login_service import LoginService
-from game_service import GameSyncService
+# sys.path.append('./dispatcher/')
+# from dispatcher import Dispatcher
+# from login_service import LoginService
+# from game_service import GameSyncService
+from dispatcher.dispatcher import Dispatcher
+from dispatcher.login_service import LoginService
+from dispatcher.game_service import GameSyncService
 
 
 class SimpleHost(object):
@@ -22,7 +25,7 @@ class SimpleHost(object):
         self.port = 0
         self.SOCKETS = {}
         self.queue = []
-        self.timeout = 30
+        self.timeout = 0.01  # TODO: need set a more accurate number
         self.dispatcher = Dispatcher()
         service_dict = {
             LoginService.SID: LoginService(),
@@ -38,11 +41,12 @@ class SimpleHost(object):
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             self.sock.bind(('0.0.0.0', port))
-        except:
+        except Exception as e:
             try:
+                print e
                 self.sock.close()
-            except:
-                pass  # should logging here
+            except Exception as e:
+                print e
             return -1
         self.sock.listen(conf.MAX_HOST_CLIENTS_INDEX + 1)
         self.sock.setblocking(0)
@@ -65,6 +69,8 @@ class SimpleHost(object):
         read = [s.sock for s in self.SOCKETS.itervalues()]
         read += [self.sock]
         self.handle_new_connection(read)
+        if 0 == len(self.SOCKETS):
+            return
         read = write = [s.sock for s in self.SOCKETS.itervalues()]
         self.read_socket(read)
         self.write_socket(write)
@@ -72,7 +78,7 @@ class SimpleHost(object):
 
     def handle_new_connection(self, read):
         """Handle new connection."""
-        readable, _, _ = select.select(read, [], [])
+        readable, _, _ = select.select(read, [], [], self.timeout)
         if self.sock in readable:
             connection, client_address = self.sock.accept()
             print >> sys.stderr, 'new connection from', client_address
@@ -85,7 +91,12 @@ class SimpleHost(object):
         """Read the socket."""
         # for sock in self.SOCKETS.itervalues():
         #     print 'sock fileno = ', sock.fileno
-        readable, _, exceptional = select.select(read, [], read, self.timeout)
+        readable, _, exceptional = select.select(
+            read,
+            [],
+            read,
+            self.timeout
+        )
         # print "readable count = ", readable.count()
         for s in readable:
             print s.fileno(), ' is readable'
@@ -110,6 +121,7 @@ class SimpleHost(object):
         )
         # TODO: cannot make a good broadcast
         for s in writable:
+            # print s.fileno(), ' is writable'
             client = self.SOCKETS[s.fileno()]
             client.send()
             # try:
@@ -126,6 +138,7 @@ class SimpleHost(object):
         """Remove all closed socket from map."""
         closed = [sock for sock in self.SOCKETS.itervalues() if sock.closed]
         for sock in closed:
+            sock.sock.close()
             self.SOCKETS.pop(sock.fileno)
 
     def handle_exceptional(self, exceptional):

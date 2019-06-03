@@ -1,8 +1,8 @@
 """Database Manager."""
-import sys
+# import sys
 from db_impl_interface import DBImplInterface, MongoDBImpl
-sys.path.append('../common')
-from singleton import singleton
+# sys.path.append('../common')
+from common.singleton import singleton
 
 
 @singleton
@@ -20,6 +20,7 @@ class DBMgr(object):
         #     print db
         db = DBImplInterface(MongoDBImpl())
         res = db.query_db(query)
+        # print 'dbmgr', res
         return res
 
     def insert_db(self, new_dict):

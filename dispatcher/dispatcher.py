@@ -17,8 +17,8 @@ class Dispatcher(object):
         if sid not in self.services:
             raise Exception('bad service %d' % sid)
         svc = self.services[sid]
-        print svc
-        return svc.handle(msg, owner)
+        print 'Dispatcher dispatch:', svc
+        svc.handle(msg, owner)
 
     def registers(self, service_dict):
         """Register services."""
@@ -43,7 +43,7 @@ class Service(object):
             raise Exception('bad command %s' % cid)
 
         f = self.commands[cid]
-        return f(msg, owner)
+        f(msg, owner)
 
     def registers(self, command_dict):
         """Register commands."""

@@ -1,10 +1,13 @@
 """Login Service."""
-import sys
 from dispatcher import Service
-sys.path.append('./network/')
-from network_msg import LocalAuthMsg
-sys.path.append('./dbmgr/')
-from dbmgr import DBMgr
+# import sys
+# sys.path.append('./network/')
+# sys.path.append('./dbmgr/')
+# from network_msg import LocalAuthMsg
+# from dbmgr import DBMgr
+from network.network_msg import LocalAuthMsg
+from dbmgr.dbmgr import DBMgr
+from threadpool.threadpool import ThreadPool
 
 
 class LoginService(Service):
@@ -30,20 +33,44 @@ class LoginService(Service):
         # print 'Login data: username = ', username, ", password = ", password
         # TODO: should not make concrete query here
         userid_query = {"username": username, "password": password}
-        # dbmgr = DBMgr()
+        dbmgr = DBMgr()
         # res = dbmgr.query_db(userid_query)
+        pool = ThreadPool()
+        pool.put(dbmgr.query_db,
+                 (userid_query,),
+                 self.handle_login_callback,
+                 (who,)
+                 )
+        # print 'login service', res
         # if res:
         #     userid = res["userid"]
-        #     print "userid = ", userid
-        #     msg = LocalAuthMsg(self.SID, self.HandleLoginCmdID, userid)
-        #     who.store_to_send_buffer(msg.to_json)
+        #     print "login userid = ", userid
         # else:
         #     print "No such user."
+        #     userid = 0
+        # msg = LocalAuthMsg(self.SID, self.HandleLoginCmdID, userid)
+        # who.store_to_send_buffer(msg.to_json())
 
         # For test:
         # userid > 0 => valid username and password
-        # userid == -1 => invalid username and password
-        userid = -1
+        # userid == 0 => invalid username and password
+        # userid == -1 => login failed
+        # userid = 0
+        # msg = LocalAuthMsg(self.SID, self.HandleLoginCmdID, userid)
+        # who.store_to_send_buffer(msg.to_json())
+
+    def handle_login_callback(self, status, result, who):
+        """Callback after database operation."""
+        if status:
+            if result:
+                userid = result["userid"]
+                print "Login userid = ", userid
+            else:
+                print "No such user."
+                userid = 0
+        else:
+            print "Login failed."
+            userid = -1
         msg = LocalAuthMsg(self.SID, self.HandleLoginCmdID, userid)
         who.store_to_send_buffer(msg.to_json())
 
@@ -53,28 +80,35 @@ class LoginService(Service):
         password = msg["Password"]
         # TODO: should not make concrete query here
         username_query = {"username": username}
-        # dbmgr = DBMgr()
-        # res = dbmgr.query_db(username_query)
-        # if res:  # user name exist when there is a result
-        #     print "UserName has been used."
-        #     return
-        # # insert new dict:
-        # # TODO: generate userid
-        # userid = None
-        # user_dict = {
-        #     "username": username,
-        #     "password": password,
-        #     "userid": userid
-        # }
-        # res = dbmgr.insert_db(user_dict)
-        # if res:
-        #     print "Register new account."
-        # else:
-        #     print "Register failed."
+        dbmgr = DBMgr()
+        res = dbmgr.query_db(username_query)
+        if res:  # user name exist when there is a result
+            print "UserName has been used."
+            userid = 0
+            msg = LocalAuthMsg(self.SID, self.HandleRegisterCmdID, userid)
+            who.store_to_send_buffer(msg.to_json())
+            return
+        # insert new dict:
+        # TODO: generate userid
+        userid = None
+        user_dict = {
+            "username": username,
+            "password": password,
+            "userid": userid
+        }
+        res = dbmgr.insert_db(user_dict)
+        if res:
+            print "Register new account."
+        else:
+            userid = -1
+            print "Register failed."
+        msg = LocalAuthMsg(self.SID, self.HandleRegisterCmdID, userid)
+        who.store_to_send_buffer(msg.to_json())
+
         # For test
         # userid > 0 => valid username and password
         # userid == 0 => username exist
         # userid == -1 => register failed
-        userid = 1
-        msg = LocalAuthMsg(self.SID, self.HandleRegisterCmdID, userid)
-        who.store_to_send_buffer(msg.to_json())
+        # userid = 1
+        # msg = LocalAuthMsg(self.SID, self.HandleRegisterCmdID, userid)
+        # who.store_to_send_buffer(msg.to_json())
