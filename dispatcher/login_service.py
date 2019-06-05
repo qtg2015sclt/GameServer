@@ -8,6 +8,7 @@ from dispatcher import Service
 from network.network_msg import LocalAuthMsg
 from dbmgr.dbmgr import DBMgr
 from threadpool.threadpool import ThreadPool
+from uid_generate.snowflake import SnowFlake
 
 
 class LoginService(Service):
@@ -25,6 +26,8 @@ class LoginService(Service):
             self.HandleRegisterCmdID: self.handle_register,
         }
         self.registers(command_dict)
+        self.threadpool = ThreadPool()
+        self.snowflake = SnowFlake()
 
     def handle_login(self, msg, who):
         """Handle login."""
@@ -35,12 +38,11 @@ class LoginService(Service):
         userid_query = {"username": username, "password": password}
         dbmgr = DBMgr()
         # res = dbmgr.query_db(userid_query)
-        pool = ThreadPool()
-        pool.put(dbmgr.query_db,
-                 (userid_query,),
-                 self.handle_login_callback,
-                 (who,)
-                 )
+        self.threadpool.put(dbmgr.query_db,
+                            (userid_query,),
+                            self.handle_login_callback,
+                            (who,)
+                            )
         # print 'login service', res
         # if res:
         #     userid = res["userid"]
@@ -60,7 +62,7 @@ class LoginService(Service):
         # who.store_to_send_buffer(msg.to_json())
 
     def handle_login_callback(self, status, result, who):
-        """Callback after database operation."""
+        """Callback after query operation."""
         if status:
             if result:
                 userid = result["userid"]
@@ -90,7 +92,7 @@ class LoginService(Service):
             return
         # insert new dict:
         # TODO: generate userid
-        userid = None
+        userid = self.snowflake.next_id()
         user_dict = {
             "username": username,
             "password": password,
@@ -112,3 +114,5 @@ class LoginService(Service):
         # userid = 1
         # msg = LocalAuthMsg(self.SID, self.HandleRegisterCmdID, userid)
         # who.store_to_send_buffer(msg.to_json())
+    def handle_register_callback(self, status, result, who):
+        """Callback after insert operation."""

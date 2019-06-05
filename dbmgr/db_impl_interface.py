@@ -2,6 +2,7 @@
 # mport sys
 # sys.path.append('../common/')
 from pymongo import MongoClient
+from pymongo import errors
 from common.singleton import singleton
 
 
@@ -56,9 +57,12 @@ class MongoDBImpl(object):
         col = db["LocalAuth"]
         try:
             res = col.insert_one(new_dict)
+        except errors.DuplicateKeyError:
+            print "Duplicate username."
+            res = 0
         except Exception as e:
             print "Insert new user failed. ", e
-            res = None
+            res = -1
         return res
 
     def connect_db(self):
