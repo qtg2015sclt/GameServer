@@ -33,9 +33,18 @@ class LoginService(Service):
         """Handle login."""
         username = msg["UserName"]
         password = msg["Password"]
+        # userid = msg.get('UserID')  # for quick login with userid
+        # comment for above line: cannot use for quick login,
+        # because a userid always exist, when login the userid is 0
         # print 'Login data: username = ', username, ", password = ", password
         # TODO: should not make concrete query here
-        userid_query = {"username": username, "password": password}
+        userid_query = {
+            "username": username,
+            "password": password
+        }
+
+        # if userid is not None:
+        #     userid_query['_id'] = userid
         dbmgr = DBMgr()
         # res = dbmgr.query_db(userid_query)
         self.threadpool.put(dbmgr.query_db,
@@ -63,9 +72,13 @@ class LoginService(Service):
 
     def handle_login_callback(self, status, result, who):
         """Callback after query operation."""
+        username = None
+        password = None
         if status:
             if result:
-                userid = result["userid"]
+                userid = result["_id"]
+                username = result["username"]
+                password = result["password"]
                 print "Login userid = ", userid
             else:
                 print "No such user."
@@ -73,7 +86,13 @@ class LoginService(Service):
         else:
             print "Login failed."
             userid = -1
-        msg = LocalAuthMsg(self.SID, self.HandleLoginCmdID, userid)
+        msg = LocalAuthMsg(
+            self.SID,
+            self.HandleLoginCmdID,
+            userid,
+            username,
+            password
+        )
         who.store_to_send_buffer(msg.to_json())
 
     def handle_register(self, msg, who):
@@ -96,7 +115,7 @@ class LoginService(Service):
         user_dict = {
             "username": username,
             "password": password,
-            "userid": userid
+            "_id": userid
         }
         res = dbmgr.insert_db(user_dict)
         if res:

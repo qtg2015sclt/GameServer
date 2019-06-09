@@ -24,7 +24,10 @@ class LocalAuthMsg(NetworkMsg):
     Return -1 when login failed or
     register failed.
     """
-    def __init__(self, sid, cid, uid):
+    def __init__(self, sid, cid, uid, username=None, password=None):
         """Contain userid."""
         super(LocalAuthMsg, self).__init__(sid, cid)
+        # key(such as 'UserID') should match the client LocalAuthMsg.
         self.dict['UserID'] = uid
+        self.dict['UserName'] = username
+        self.dict['Password'] = password
