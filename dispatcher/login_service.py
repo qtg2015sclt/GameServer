@@ -1,4 +1,5 @@
 """Login Service."""
+import Queue
 from dispatcher import Service
 # import sys
 # sys.path.append('./network/')
@@ -28,6 +29,7 @@ class LoginService(Service):
         self.registers(command_dict)
         self.threadpool = ThreadPool()
         self.snowflake = SnowFlake()
+        self.result_q = Queue.Queue()
 
     def handle_login(self, msg, who):
         """Handle login."""
@@ -86,6 +88,7 @@ class LoginService(Service):
         else:
             print "Login failed."
             userid = -1
+        # TODO: do these in login system:
         msg = LocalAuthMsg(
             self.SID,
             self.HandleLoginCmdID,
