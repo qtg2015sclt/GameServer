@@ -19,5 +19,8 @@ class LoginSystem(System):
         self.system_id = self.system_level * worldmgr.SYSTEM_LEVEL_FACTOR
         + worldmgr.generate_system_id()
 
+    def get_attached_components(self):
+        return self.components
+
     def update_entity(self):
         pass
