@@ -7,5 +7,7 @@ class component(object):
 
 
 class login_component(component):
+    """Login Component."""
+
     def __init__(self):
         self.login_result_q = Queue.Queue()
