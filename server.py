@@ -5,7 +5,9 @@
 import time
 from network.simple_host import SimpleHost
 from threadpool.threadpool import ThreadPool
-from worldmgr.worldmgr import WorldMgr
+from ecs.worldmgr import WorldMgr
+from ecs.system.login_system import LoginSystem
+from ecs.entity import entity
 
 
 class GameServer(object):
@@ -13,8 +15,10 @@ class GameServer(object):
 
     def __init__(self):
         """A Game Server contains a simple host."""
-        self.host = SimpleHost()
+        # self.worldmgr = WorldMgr()
+        self.register_entity_and_system()
         self.worldmgr = WorldMgr()
+        self.host = SimpleHost()
         return
 
     def start(self, port=0):
@@ -28,6 +32,10 @@ class GameServer(object):
             self.worldmgr.update_all()
             time.sleep(0.01)
         return 0
+
+    def register_entity_and_system(self):
+        LoginSystem()
+        entity.SingletonMgrEntity()
 
 
 if "__main__" == __name__:

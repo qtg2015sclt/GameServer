@@ -1,7 +1,4 @@
 import Queue
-from component.component import LoginComponent
-from system.login_system import LoginSystem
-from entity.entity import Entity
 
 
 class WorldMgr(object):
@@ -18,25 +15,26 @@ class WorldMgr(object):
     entity_remove_queue = Queue.Queue()
     system_entity_match_dict = {}
 
-    def init(self):
-        # entity and component:
-        manager_entities = Entity()
-        manager_entities.add_component(LoginComponent())
-
-        # system:
-        login_system = LoginSystem()
-        self.system_dict[login_system.system_id] = login_system
+    def __init__(self):
         # TODO: sort system_dict
         for system in self.system_dict.itervalues():
+            # print system.system_id
             self.system_entity_match_dict[system.system_id] = set()
 
     def update_all(self):
+        # print 'WorldMgr update_all'
         self.update_entity_dict()
         for system in self.system_dict.itervalues():
+            # print system.__class__
             self.do_update(system.update_entity, system.system_id)
 
     @classmethod
+    def add_system(cls, system_id, system):
+        cls.system_dict[system_id] = system
+
+    @classmethod
     def add_entity(cls, entity):
+        # print entity.__class__
         cls.entity_add_queue.put(entity)
 
     @classmethod
@@ -65,6 +63,7 @@ class WorldMgr(object):
         for system in self.system_dict.itervalues():
             while not self.entity_add_queue.empty():
                 entity = self.entity_add_queue.get()
+                # print entity.__class__
                 self.do_add_entity(entity)
 
             while not self.entity_remove_queue.empty():
@@ -74,6 +73,7 @@ class WorldMgr(object):
     @classmethod
     def do_update(cls, func, system_id):
         if cls.system_entity_match_dict.get(system_id) is None:
+            # print system_id
             return
         for entity_id in cls.system_entity_match_dict[system_id]:
             func(cls.entity_dict[entity_id])
@@ -81,6 +81,7 @@ class WorldMgr(object):
     @classmethod
     def do_add_entity(cls, entity):
         if not cls.entity_dict.get(entity.entity_id):
+            # print entity.entity_id
             cls.entity_dict[entity.entity_id] = entity
             cls.do_match_entity(entity)
 
@@ -96,17 +97,21 @@ class WorldMgr(object):
         for system in cls.system_dict.itervalues():
             if cls.match_components(entity, system.get_attached_components()):
                 cls.system_entity_match_dict[system.system_id]\
-                    = entity.entity_id
+                    .add(entity.entity_id)
 
     @classmethod
     def remove_entity_match(cls, entity):
         for system in cls.system_dict.itervalues():
+            if cls.system_entity_match_dict.get(system.system_id) is None:
+                # print system.system_id
+                return
             cls.system_entity_match_dict[system.system_id]\
                 .discard(entity.entity_id)
 
     @classmethod
     def match_components(cls, entity, components):
         for component in components:
+            # print component
             if not entity.has_component(component):
                 return False
         return True
