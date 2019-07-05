@@ -1,4 +1,5 @@
 """Login Service."""
+# import Queue
 from dispatcher import Service
 # import sys
 # sys.path.append('./network/')
@@ -9,6 +10,8 @@ from network.network_msg import LocalAuthMsg
 from dbmgr.dbmgr import DBMgr
 from threadpool.threadpool import ThreadPool
 from uid_generate.snowflake import SnowFlake
+# from ecs.system.login_system import LoginSystem
+from ecs.component.login_component import LoginComponent
 
 
 class LoginService(Service):
@@ -27,7 +30,9 @@ class LoginService(Service):
         }
         self.registers(command_dict)
         self.threadpool = ThreadPool()
+        # print self.threadpool
         self.snowflake = SnowFlake()
+        self.login_component = LoginComponent()
 
     def handle_login(self, msg, who):
         """Handle login."""
@@ -79,13 +84,14 @@ class LoginService(Service):
                 userid = result["_id"]
                 username = result["username"]
                 password = result["password"]
-                print "Login userid = ", userid
+                print username, " Login"
             else:
                 print "No such user."
                 userid = 0
         else:
             print "Login failed."
             userid = -1
+        # TODO: do these in login system:
         msg = LocalAuthMsg(
             self.SID,
             self.HandleLoginCmdID,
@@ -93,7 +99,8 @@ class LoginService(Service):
             username,
             password
         )
-        who.store_to_send_buffer(msg.to_json())
+        self.login_component.login_result_q.put((who, msg.to_json()))
+        # who.store_to_send_buffer(msg.to_json())
 
     def handle_register(self, msg, who):
         """Handle new account register."""

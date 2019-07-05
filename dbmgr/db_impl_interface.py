@@ -40,7 +40,8 @@ class MongoDBImpl(object):
 
     def query_db(self, query):
         """Query MongoDB."""
-        db = self.client["tpsdemo"]
+        # db = self.client["tpsdemo"]
+        db = self.client["tututu"]
         col = db["LocalAuth"]
         try:
             res = col.find(query).limit(1)[0]

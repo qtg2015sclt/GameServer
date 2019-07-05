@@ -1,6 +1,6 @@
 """Network: SimpleHost."""
 import sys
-import json
+# import json
 import socket
 import select
 import conf
@@ -11,7 +11,7 @@ from buffered_socket import BufferedSocket
 # from game_service import GameSyncService
 from dispatcher.dispatcher import Dispatcher
 from dispatcher.login_service import LoginService
-from dispatcher.game_service import GameSyncService
+# from dispatcher.game_service import GameSyncService
 
 
 class SimpleHost(object):
@@ -75,10 +75,12 @@ class SimpleHost(object):
         self.read_socket(read)
         self.write_socket(write)
         self.close()
+        self.handle_recieved_msg()
 
     def handle_new_connection(self, read):
         """Handle new connection."""
-        readable, _, _ = select.select(read, [], [], self.timeout)
+        # readable, _, _ = select.select(read, [], [], self.timeout)
+        readable, _, _ = select.select(read, [], [], 0.001)
         if self.sock in readable:
             connection, client_address = self.sock.accept()
             print >> sys.stderr, 'new connection from', client_address
@@ -99,13 +101,14 @@ class SimpleHost(object):
         )
         # print "readable count = ", readable.count()
         for s in readable:
-            print s.fileno(), ' is readable'
+            # print s.fileno(), ' is readable'
             client = self.SOCKETS[s.fileno()]
-            data = client.receive()
-            if data:
-                print 'received "%s" from %s' % (data, s.getpeername())
-                # TODO: need handle dispatch return?
-                self.dispatcher.dispatch(data, client)
+            client.receive()
+            # data = client.receive()
+            # if data:
+            #     print 'received "%s" from %s' % (data, s.getpeername())
+            #     # TODO: need handle dispatch return?
+            #     self.dispatcher.dispatch(data, client)
         self.handle_exceptional(exceptional)
 
     def write_socket(self, write):
@@ -140,6 +143,17 @@ class SimpleHost(object):
         for sock in closed:
             sock.sock.close()
             self.SOCKETS.pop(sock.fileno)
+
+    def handle_recieved_msg(self):
+        clients = [client for client in self.SOCKETS.itervalues()]
+        for client in clients:
+            data_list = client.read_from_recv_buffer()
+            if 0 == len(data_list):
+                continue
+            for data in data_list:
+                print 'received "%s" from %s' % (data, client.sock.getpeername())
+                # TODO: need handle dispatch return?
+                self.dispatcher.dispatch(data, client)
 
     def handle_exceptional(self, exceptional):
         """Handle exceptional."""
