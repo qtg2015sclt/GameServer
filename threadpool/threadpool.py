@@ -1,9 +1,9 @@
 """Thread Pool."""
 import Queue
-import time
+# import time
 import threading
 import contextlib
-import sys
+# import sys
 # sys.path.append('../common')
 # from singleton import singleton
 from common.singleton import singleton

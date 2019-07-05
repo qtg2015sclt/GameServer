@@ -19,6 +19,7 @@ class GameServer(object):
         self.register_entity_and_system()
         self.worldmgr = WorldMgr()
         self.host = SimpleHost()
+        self.frame_time = 1.0 / 60
         return
 
     def start(self, port=0):
@@ -27,10 +28,21 @@ class GameServer(object):
         print 'GameServer start'
         while True:
             # network msg:
+            frame_start = time.time()
+            # frame_start-----------------------
             self.host.process()
             # all other logic:
             self.worldmgr.update_all()
-            time.sleep(0.01)
+            frame_end = time.time()
+            # frame_end-------------------------
+
+            frame_last_time = frame_end - frame_start
+            time_to_sleep = self.frame_time - frame_last_time
+            if time_to_sleep > 0:
+                # print 'time_to_sleep = ', time_to_sleep
+                time.sleep(time_to_sleep)
+            else:
+                print 'process takes too long: ', str(time_to_sleep)
         return 0
 
     def register_entity_and_system(self):

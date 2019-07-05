@@ -1,5 +1,5 @@
 """Login Service."""
-import Queue
+# import Queue
 from dispatcher import Service
 # import sys
 # sys.path.append('./network/')
@@ -10,7 +10,7 @@ from network.network_msg import LocalAuthMsg
 from dbmgr.dbmgr import DBMgr
 from threadpool.threadpool import ThreadPool
 from uid_generate.snowflake import SnowFlake
-from ecs.system.login_system import LoginSystem
+# from ecs.system.login_system import LoginSystem
 from ecs.component.login_component import LoginComponent
 
 
@@ -30,6 +30,7 @@ class LoginService(Service):
         }
         self.registers(command_dict)
         self.threadpool = ThreadPool()
+        # print self.threadpool
         self.snowflake = SnowFlake()
         self.login_component = LoginComponent()
 
@@ -83,7 +84,7 @@ class LoginService(Service):
                 userid = result["_id"]
                 username = result["username"]
                 password = result["password"]
-                print "Login userid = ", userid
+                print username, " Login"
             else:
                 print "No such user."
                 userid = 0

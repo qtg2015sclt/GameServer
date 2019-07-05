@@ -37,12 +37,15 @@ class BufferedSocket(object):
         #     data += chunk
         if '' == data:
             self.close()
-        return data
-        # self.recv_buffer += data
+        # return data
+        self.recv_buffer += data
 
     def read_from_recv_buffer(self):
         """Read from recv_buffer."""
-        raise NotImplementedError
+        data_list = self.recv_buffer.splitlines()
+        self.recv_buffer = ''
+        return data_list
+        # raise NotImplementedError
 
     def send(self):
         """Send msg in send_buffer to socket."""

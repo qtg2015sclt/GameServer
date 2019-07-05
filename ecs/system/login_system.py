@@ -1,5 +1,5 @@
 """Login System."""
-from ..component.login_component import LoginComponent
+# from ..component.login_component import LoginComponent
 from common.singleton import singleton
 from ..worldmgr import WorldMgr
 
@@ -34,7 +34,7 @@ class LoginSystem(System):
     def __init__(self):
         """Init components, level and id."""
         self.components = ['LoginComponent']
-        print self.components[0]
+        # print self.components[0]
         self.system_level = WorldMgr.SYSTEM_COMMON_LEVEL - 3
         self.system_id = self.system_level * WorldMgr.SYSTEM_LEVEL_FACTOR
         + WorldMgr.generate_system_id()
