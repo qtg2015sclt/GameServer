@@ -16,8 +16,6 @@ class BufferedSocket(object):
         self.recv_buffer = ''
         self.closed = False
 
-    # TODO: may need two type receive:
-    # socket->buffer and buffer->host msg queue
     def receive(self):
         """Read socket and save to recv_buffer."""
         # data = ''

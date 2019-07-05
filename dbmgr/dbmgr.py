@@ -11,6 +11,7 @@ class DBMgr(object):
 
     def __init__(self):
         """Init."""
+        self.db = DBImplInterface(MongoDBImpl())
 
     def query_db(self, query):
         """Query DB."""
@@ -18,15 +19,15 @@ class DBMgr(object):
         # for i in xrange(5):
         #     db = DBImplInterface(MongoDBImpl())
         #     print db
-        db = DBImplInterface(MongoDBImpl())
-        res = db.query_db(query)
+        # db = DBImplInterface(MongoDBImpl())
+        res = self.db.query_db(query)
         # print 'dbmgr', res
         return res
 
     def insert_db(self, new_dict):
         """Insert new dict to db."""
-        db = DBImplInterface(MongoDBImpl())
-        res = db.insert_db(new_dict)
+        # db = DBImplInterface(MongoDBImpl())
+        res = self.db.insert_db(new_dict)
         return res
 
 
